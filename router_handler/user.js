@@ -54,7 +54,6 @@ exports.login = (req, res) => {
   const sqlStr = 'select * from ev_users where username = ?';
   db.query(sqlStr, userInfo.username, (err, results) => {
     if (err) return res.cc(err);
-    console.log(results);
     if (results.length !== 1) {
       return  res.cc('用户名错误');
     }
@@ -62,9 +61,11 @@ exports.login = (req, res) => {
     if (!bcrypt.compareSync(userInfo.password, results[0].password)) {
       return res.cc('密码错误');
     }
+    //通过 ES6 的高级语法，快速剔除 密码 和 头像 的值
+    // 剔除完毕之后，user 中只保留了用户的 id, username, nickname, email 这四个属性的值
     const user = {...results[0], password: '', user_pic: ''};
     const tokenStr = jwk.sign(user, config.jwtSecretKey,{
-      expiresIn: 10, // token 有效期为10小时
+      expiresIn: 10000, // token 有效期为10小时
     })
     res.send({
       status: 0,
